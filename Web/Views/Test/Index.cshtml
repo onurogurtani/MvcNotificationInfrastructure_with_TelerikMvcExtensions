@@ -1,0 +1,211 @@
+﻿@using Infrastructure.Extentions
+
+@using Telerik.Web.Mvc.UI
+@using Web.Controllers
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@model Web.Controllers.User
+
+@{
+   
+
+}
+
+<h2>Get Method Notification Types</h2>
+<a href="/Test/Error" class="t-button">Error</a>
+<a href="/Test/Warning" class="t-button">Warning</a>
+<a href="/Test/Success" class="t-button">Success</a>
+
+<h2>Get Method Redirect Notification Types</h2>
+<a href="/Test/RedirectError" class="t-button">Redirect Error</a>
+<a href="/Test/RedirectWarning" class="t-button">Redirect Warning</a>
+<a href="/Test/RedirectSuccess" class="t-button">Redirect Success</a>
+
+<br />
+<h2>Ajax Call  Notification Types</h2>
+<button id="Errorajax" class="t-button" onclick="Errorajax();">Ajax Error</button>
+<button id="Warningajax" class="t-button" onclick="Warningajax();">Ajax Warning</button>
+<button id="Successajax" class="t-button" onclick="Successajax();">
+    Ajax Success
+</button>
+<h2>Unhandled  Exception Types</h2>
+<a href="/Test/UnhandledException" class="t-button">Unhandled Exception</a>
+<button id="ajaxunhandled" class="t-button" onclick="Ajaxunhandled();">
+    Ajax  Unhandled
+    Exception</button>
+
+<h2>UnauthorizedAccessException   Types</h2>
+<a href="/Test/UnAuthorizedException" class="t-button">UnauthorizedAccessException
+</a>
+<button id="AjaxUnauthorizedAccessException" class="t-button" onclick="AjaxUnauthorizedAccessException();">
+    Ajax  UnauthorizedAccessException</button>
+
+<br />
+<h2>Telerik Grid   </h2>
+<br />
+<h2>Grid Error Type:</h2>
+<br />
+@(Html.Telerik().DropDownList()
+                          .Name("ErrorTypeId")
+                          .HtmlAttributes(new { style = "width: 300px;" })
+                          .DropDownHtmlAttributes(new { style = "height: 300px" })
+                          .BindTo(new List<SelectListItem>()
+                                      { 
+                                        new SelectListItem(){Selected = false,Text = "-Select-",Value = "-1"},
+                                          new SelectListItem(){Selected = false,Text = "HttpUnhandledException",Value = "0"},
+                                             new SelectListItem(){Selected = false,Text = "UnauthorizedAccessException",Value = "1"},
+                                                new SelectListItem(){Selected = false,Text = "Warning",Value = "2"},
+                                                   new SelectListItem(){Selected = false,Text = "Success",Value = "3"},
+                                                      new SelectListItem(){Selected = false,Text = "Error",Value = "4"}
+                                      })
+       )
+<br />
+<h2>Search:</h2>
+<br />
+@Html.LabelFor(i => i.Id)
+@Html.EditorFor(i => i.Id)
+@Html.LabelFor(i => i.Name)
+@Html.EditorFor(i => i.Name)
+@(Html.Telerik().Grid<User>()
+              .Name("grd_test")
+              .Columns(columns =>
+              {
+                  columns.Bound(q => q.Id);
+                  columns.Bound(q => q.Name);
+              })
+              .Pageable(settings => settings.Position(GridPagerPosition.Both).PageSize(20))
+              .DataBinding(dataBinding => dataBinding.Ajax().Select("LoadGrid", "Test"))
+              .ClientEvents(events => events.OnDataBinding("onDataBinding").OnError("onError"))
+      .EnableCustomBinding(true))
+<br />
+<button id="testGridSearch" class="t-button">Search </button>
+<script type="text/javascript">
+
+    function searchbind() {
+        var grid = $('#grd_test').data('tGrid');
+        grid.currentPage = 1; //new search. Set page size to 1
+        grid.ajaxRequest();
+        return false;
+    }
+
+    function onDataBinding(e) {
+
+        var searchModel = {
+            id: $('#Id').val(),
+            text: $('#Name').val(),
+            errorTypeId: $('#ErrorTypeId').val()
+        };
+        e.data = searchModel;
+
+    }
+
+    function refreshGrid() {
+        var grid = $('#grd_test').data('tGrid');
+        grid.ajaxRequest();
+        return false;
+    }
+
+    function onError(e) {
+        if (e.textStatus == 'error') {
+            if (e.XMLHttpRequest.status == "500" || e.XMLHttpRequest.status == "403") {
+                e.preventDefault();
+            }
+        }
+    }
+
+    $(document).ready(function () {
+        $('#testGridSearch').click(function () {
+            var grid = $('#grd_test').data('tGrid');
+            grid.currentPage = 1; //new search. Set page size to 1
+            grid.ajaxRequest();
+            return false;
+        });
+
+    });
+
+</script>
+<script type="text/javascript">
+
+
+    function Errorajax() {
+
+        Type = "POST";
+        Url = '@Url.Action("ErrorAjax", "Test")';
+        ContentType = "application/json; charset=utf-8";
+        DataType = "json";
+        CallAction();
+    }
+
+    function Warningajax() {
+
+        Type = "POST";
+        Url = '@Url.Action("WarningAjax", "Test")';
+        ContentType = "application/json; charset=utf-8";
+        DataType = "json";
+        CallAction();
+    }
+
+    function Successajax() {
+
+        Type = "POST";
+        Url = '@Url.Action("SuccessAjax", "Test")';
+        ContentType = "application/json; charset=utf-8";
+        DataType = "json";
+        CallAction();
+    }
+
+    function Ajaxunhandled() {
+
+        Type = "POST";
+        Url = '@Url.Action("AjaxUnHandledException", "Test")';
+        ContentType = "application/json; charset=utf-8";
+        DataType = "json";
+        CallAction();
+    }
+
+    function AjaxUnauthorizedAccessException() {
+
+        Type = "POST";
+        Url = '@Url.Action("AjaxUnAuthorizedException", "Test")';
+        ContentType = "application/json; charset=utf-8";
+        DataType = "json";
+        CallAction();
+    }
+
+    var Type;
+    var Url;
+    var Data;
+    var ContentType;
+    var DataType;
+    var ProcessData;
+    function CallAction() {
+        $.ajax({
+            type: Type, //GET,POST,PUT or DELETE verb
+            url: Url, // Location of the action
+            data: Data, //Data to be sent to server
+            contentType: ContentType, // content type sent to action
+            dataType: DataType, //Expected data format from action
+            success: function (msg) {  //On Successful service call
+                ActionSucceeded(msg);
+            },
+            error: ActionFailed // function When Service call fails
+        });
+    }
+
+    function ActionFailed(result) {
+        //alert('Service call failed: ' + result.status + '' + result.statusText);
+        Type = null; Url = null; Data = null; ContentType = null; DataType = null; ProcessData = null;
+    }
+
+    function ActionSucceeded(result) {
+    }
+
+    function ActionFailed(xhr) {
+        return;
+    }
+
+
+
+</script>
